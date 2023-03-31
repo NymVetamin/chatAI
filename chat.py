@@ -4,11 +4,10 @@ from os import getenv
 from random import random
 
 
-openai.api_key = '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'
-token = '6053483930:AAE9Wl9QEy2Ol_9_q5gGBMwDI1i52C0A55Q'
+openai.api_key = getenv('API_KEY')
+token = getenv('TOKEN')
 
 bot = telebot.TeleBot(token)
-
 content_types = ['audio', 'document', 'photo', 'sticker', 'video', 'video_note',\
                 'voice', 'location', 'contact', 'new_chat_members', 'left_chat_member',\
                 'new_chat_title', 'new_chat_photo', 'delete_chat_photo', 'group_chat_created',\
