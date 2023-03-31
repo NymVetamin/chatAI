@@ -4,6 +4,7 @@ from os import getenv
 from random import random
 
 
+
 openai.api_key = getenv('API_KEY')
 token = getenv('TOKEN')
 
@@ -16,7 +17,8 @@ content_types = ['audio', 'document', 'photo', 'sticker', 'video', 'video_note',
 
 @bot.message_handler(content_types=content_types)
 def acceptable_content(message):
-    bot.send_message(message.chat.id, 'На данный момент я понимаю только текст😑')
+    if message.chat.type != 'group' and message.chat.type != 'supergroup':
+        bot.send_message(message.chat.id, 'На данный момент я понимаю только текст😑')
 
 
 @bot.message_handler()
@@ -26,30 +28,31 @@ def message_handler(message):
         'ты можешь задать мне любой вопрос и я отвечу😊'
         bot.send_message(message.chat.id, mess, parse_mode = 'html')
     else:
-        message_log = [{"role": "system", "content": "Ты веселый ассистент, говорящий на русском"}]
+        message_log = [{"role": "system", "content": "Ты сарказм бот, говоришь на русском"}]
         conversation(message, message_log)
 
 
 def conversation(message, message_log):
     query = message.text
     if not query:
-        bot.send_message(message.chat.id, 'На данный момент я понимаю только текст')
+        if message.chat.type != 'group' and message.chat.type != 'supergroup':
+            bot.send_message(message.chat.id, 'На данный момент я понимаю только текст')
         bot.register_next_step_handler(message, conversation, message_log)
         return
-    elif query == '/clear':
+    elif query in ['/clear', '/clear@great_ai_oracle_bot']:
         bot.clear_step_handler_by_chat_id(chat_id = message.chat.id)
         bot.send_message(message.chat.id, 'Чат очищен, можете начать другой диалог')
         return
-    message_log.append({'role': 'user', 'content': query})
     if (message.chat.type == 'group' or message.chat.type == 'supergroup') and bot.get_me().username not in query and not message.reply_to_message:
-            if random() < 0.8:
+            if random() < 0.9:
                 bot.register_next_step_handler(message, conversation, message_log)
                 return
     elif (message.chat.type == 'group' or message.chat.type == 'supergroup') and bot.get_me().username not in query and message.reply_to_message:
         if message.reply_to_message.from_user.id != bot.get_me().id:
-            if random() < 0.8:
+            if random() < 0.9:
                 bot.register_next_step_handler(message, conversation, message_log)
                 return
+    message_log.append({'role': 'user', 'content': query})
     bot.send_chat_action(message.chat.id, 'typing')
     response = send_message(message_log)
     message_log.append({'role': 'assistant', 'content': response})
@@ -64,9 +67,7 @@ def send_message(message_log):
         messages=message_log,   # The conversation history up to this point, as a list of dictionaries
         max_tokens=100,        # The maximum number of tokens (words or subwords) in the generated response
         stop=None,              # The stopping sequence for the generated response, if any (not used here)
-        temperature=0.7,        # The "creativity" of the generated response (higher temperature = more creative)
-        frequency_penalty=0.6,
-        presence_penalty=1.5
+        temperature=1.1,        # The "creativity" of the generated response (higher temperature = more creative)
     )
     return response['choices'][0]['message']['content']
 
